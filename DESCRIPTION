@@ -1,0 +1,19 @@
+Package: RCMDcheckFalsePositive
+Type: Package
+Title: MWE of a R CMD check False Positive NOTE
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Bjarke", "Hautop",
+      email = "bjarke.hautop@gmail.com",
+      role = c("aut", "cre", "cph")
+    )
+  )
+Description: Provides a MWE of usage of pkg::foo usage not being picked up inside R6 classes resulting in a false
+    positive NOTE about imported packages not used.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    R6,
+    stats
