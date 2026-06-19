@@ -57,9 +57,6 @@ This check passes:
 ```
 The results of this for dev version Windows check are in `CRAN-dev-winbuilder-results/`.
 
-I found this related stackoverflow post:
-https://stackoverflow.com/questions/64055049/unexpected-note-namespace-in-imports-field-not-imported-from-r6
-
 My sessionInfo (same issue appears on Windows):
 ``` r
 > sessionInfo()
@@ -87,24 +84,12 @@ loaded via a namespace (and not attached):
 [1] compiler_4.5.2 tools_4.5.2
 ```
 
-## Questions
-
-1. Is this the intended behavior of R CMD check, or is it a bug that it fails to detect usage of packages inside
-R6 classes? If intended (e.g. due to it being too expensive to check for :: in "hidden places") should this be
-mentioned somewhere on WRE? Currently
-[WRE](https://cran.r-project.org/doc/manuals/r-devel/R-exts.html#Package-Dependencies-1) says:
-*"The ‘Imports’ field should not contain packages which are not imported from (via the NAMESPACE file or :: or ::: operators)"*
-indicating that `::` usage should be fully supported.
-
-2. How/Why does the NOTE disappear when checking on CRAN dev winbuilder? Can I replicate this behavior locally using
-R CMD check? Will it pass on CRAN?
-
 ## Workaround
 
 Of course I can just import `importFrom(R6, R6Class)` to prevent the R6 note, but since I want to use `stats::filter()`
 and my custom filter function I need to use `stats::filter()` to resolve the conflict[^1].
 
-I see two possible hacks to get around this:
+I see two possible ways to get around this:
 
 1. Import a different arbitrary functions for the packages I use in NAMESPACE to silence the NOTE. E.g. adding 
 ```
@@ -118,16 +103,8 @@ avoid_cran_note <- function() {
   stats::filter(x, rep(1, 3))
 }
 ```
-Neither of these solutions are ideal.
 
-The first one is a bit hacky and requires importing functions that are not
-actually used in the package, which pollutes NAMESPACE and can be confusing for users and maintainers. In theory
-this solution could even be impossible due to conflicts.
-
-The second one adds unnecessary code to the package, which can also be confusing,
-especially if using many packages inside the R6 class that are not detected by R CMD check.
-
-[^1]: Since stats is a base package, I technically don't need to add it in Imports, but this is besides the point.
-Replace the use of `stats::filter()` any other conflicts (e.g. just replace `stats::filter()` with `dplyr::filter()`
-in my example) and the issue is the same. I chose to only use base packages (except the needed R6 for the issue)
-to replicate the issue I observed as minimal as possible.
+[^1]: Since `stats` is a base package, I technically don't need to include it in `Imports`, but that's beside the
+point. If you replace `stats::filter()` with any other namespace conflict (for example, substituting
+`stats::filter()` with `dplyr::filter()` in my example), the issue remains the same. I used only base
+packages apart from the required `R6` package to reproduce the problem.
